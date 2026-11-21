@@ -1,0 +1,1 @@
+Zaimplementuj w trybie --auto poprawkę: w eksporcie CSV brakuje darmowych zamówień (total = 0), np. zamówienia nr 2 konta a1.

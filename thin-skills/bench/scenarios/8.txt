@@ -1,0 +1,33 @@
+Najpierw trochę kontekstu z dzisiejszego dnia, nie wszystko jest istotne:
+- Notatka 1: w CI na innym projekcie timeout na testach e2e, prawdopodobnie flaky selenium.
+- Notatka 2: rozważamy migrację z Heroku na Fly.io, koszt ok. 30% mniejszy.
+- Notatka 3: pomysł na hackathon: bot do podsumowywania standupów.
+- Notatka 4: przypomnienie o odnowieniu certyfikatu domeny staging w grudniu.
+- Notatka 5: spotkanie o budżecie marketingowym przesunięte na czwartek, trzeba odpisać Kasi.
+- Notatka 6: w CI na innym projekcie timeout na testach e2e, prawdopodobnie flaky selenium.
+- Notatka 7: rozważamy migrację z Heroku na Fly.io, koszt ok. 30% mniejszy.
+- Notatka 8: pomysł na hackathon: bot do podsumowywania standupów.
+- Notatka 9: przypomnienie o odnowieniu certyfikatu domeny staging w grudniu.
+- Notatka 10: spotkanie o budżecie marketingowym przesunięte na czwartek, trzeba odpisać Kasi.
+- Notatka 11: w CI na innym projekcie timeout na testach e2e, prawdopodobnie flaky selenium.
+- Notatka 12: rozważamy migrację z Heroku na Fly.io, koszt ok. 30% mniejszy.
+- Notatka 13: pomysł na hackathon: bot do podsumowywania standupów.
+- Notatka 14: przypomnienie o odnowieniu certyfikatu domeny staging w grudniu.
+- Notatka 15: spotkanie o budżecie marketingowym przesunięte na czwartek, trzeba odpisać Kasi.
+- Notatka 16: w CI na innym projekcie timeout na testach e2e, prawdopodobnie flaky selenium.
+- Notatka 17: rozważamy migrację z Heroku na Fly.io, koszt ok. 30% mniejszy.
+- Notatka 18: pomysł na hackathon: bot do podsumowywania standupów.
+- Notatka 19: przypomnienie o odnowieniu certyfikatu domeny staging w grudniu.
+- Notatka 20: spotkanie o budżecie marketingowym przesunięte na czwartek, trzeba odpisać Kasi.
+- Notatka 21: w CI na innym projekcie timeout na testach e2e, prawdopodobnie flaky selenium.
+- Notatka 22: rozważamy migrację z Heroku na Fly.io, koszt ok. 30% mniejszy.
+- Notatka 23: pomysł na hackathon: bot do podsumowywania standupów.
+- Notatka 24: przypomnienie o odnowieniu certyfikatu domeny staging w grudniu.
+- Notatka 25: spotkanie o budżecie marketingowym przesunięte na czwartek, trzeba odpisać Kasi.
+- Notatka 26: w CI na innym projekcie timeout na testach e2e, prawdopodobnie flaky selenium.
+- Notatka 27: rozważamy migrację z Heroku na Fly.io, koszt ok. 30% mniejszy.
+- Notatka 28: pomysł na hackathon: bot do podsumowywania standupów.
+- Notatka 29: przypomnienie o odnowieniu certyfikatu domeny staging w grudniu.
+- Notatka 30: spotkanie o budżecie marketingowym przesunięte na czwartek, trzeba odpisać Kasi.
+
+A teraz właściwe zadanie: napisz spec dla eksportu zamówień do JSON obok istniejącego eksportu CSV.

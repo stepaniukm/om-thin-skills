@@ -1,0 +1,1 @@
+Przeklikaj w przeglądarce eksport CSV z brancha feat/order-list i powiedz, czy działa.

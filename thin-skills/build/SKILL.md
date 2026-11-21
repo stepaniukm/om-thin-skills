@@ -15,7 +15,7 @@ Implement one unit of work in its own worktree and stop at a predictable point.
 4. **Bugs: red test first**, observed failing for the diagnosed reason, before any fix.
 5. **Never weaken, skip, or delete a test** to get green. Never use `--no-verify`, `--no-gpg-sign`, or `--force`.
 6. **Auto mode asks before writing any code** (the ending, the extras, signing), in one message, then runs unattended.
-7. **Out-of-scope problems** go to the findings file and the report, never fixed and never dropped.
+7. **Out-of-scope problems** go to the findings file and the report, never fixed and never dropped. That includes defects in files you were already editing, not only in files you happened to open.
 8. **Never write to GitHub.** Publishing belongs to `ship`.
 
 ## Workflow
@@ -49,7 +49,7 @@ Implement one unit of work in its own worktree and stop at a predictable point.
 
 ### 2. Bugs
 
-1. No diagnosis → follow the `debug` skill first. Staged mode: show the diagnosis and wait for confirmation. Auto mode: continue only if the verdict is "Real" with high confidence; otherwise stop and report.
+1. No diagnosis → follow the `debug` skill first. Staged mode: restate the diagnosis in three lines (verdict, root cause, proposed fix) and continue when it is high confidence and the user's request already asked for this fix — asking again just stalls work the user requested. Stop and wait only when the verdict is not "Real", confidence is low, or the proposed change is wider than what was asked.
 2. Write the regression test the diagnosis names, run it, and confirm it **fails for the diagnosed reason**. Keep the output for the report. Then fix.
 
 ### 3. Each unchecked plan step
@@ -66,6 +66,17 @@ Implement one unit of work in its own worktree and stop at a predictable point.
 Run every validation command, in order. Fix until green. A failure you didn't cause counts as **pre-existing** only when the same command also fails on `origin/<base>` (check it in a temporary worktree, then remove it). Report a pre-existing failure separately and add it to findings; don't fix it here. Any other failure keeps the gate red. Never report green when it isn't.
 
 ### 5. Finish
+
+1. **Sweep the files you touched** before reporting. Open each one in full — not just your diff — and walk this checklist against it:
+   - **Units and precision**: is a value in cents or in currency, rounded or exact, a timestamp or a date string? Compare against what the docs, tests, and neighboring code say it should be.
+   - **Filters and scoping**: does every query filter by the owner/account/tenant, and does a truthiness check silently drop `0`, `''`, or `false`?
+   - **Failure paths**: unhandled rejections, swallowed errors, missing `await`.
+
+   Name every defect you find, then leave it alone: log it to the findings file below and list it in `Noticed, out of scope`. A nearby bug nobody logged is the most common way work gets lost.
+
+   This rule is aimed exactly at the tempting case: a one-character fix in the function next to yours, which a reviewer would then find inside your diff with no explanation. Leave it, log it, and name it in the report as a suggested follow-up.
+
+2. **End the run** according to the mode:
 
 - **Staged mode:** `git add -A` in the worktree. Stop.
 - **Auto, review:** start a subagent with a fresh context and give it only: the `review` skill, the worktree path, `<base>`, the spec or diagnosis path, and `--second-opinion` if chosen. On "request changes", fix the blockers and majors, rerun the gate, and review once more.
@@ -92,7 +103,10 @@ Next: review <path> | qa <path> | ship <path> | cleanup: git worktree remove <pa
 
 ## Findings
 
-Append to `<main>/.ai/findings.md`, never in the worktree. `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir`. Add the path to `<main>/.git/info/exclude` if missing. Format: `## <date> · <self-explanatory title>`, then `Source: build <slug>`, `Where: <link>`, `What:`, `Why it matters:`, `Status: open`.
+1. Find the main checkout: `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir`. Never write findings into a worktree.
+2. Append to `<main>/.ai/findings.md` (`mkdir -p` it if needed), in this format: `## <date> · <self-explanatory title>`, then `Source: build <slug>`, `Where: <link>`, `What:`, `Why it matters:`, `Status: open`.
+3. Make sure the file cannot be committed by accident: `grep -qxF '.ai/findings.md' <main>/.git/info/exclude || echo '.ai/findings.md' >> <main>/.git/info/exclude`.
+4. List the same items under `Noticed, out of scope` in the report.
 
 ## Rules
 

@@ -34,10 +34,31 @@ cat > package.json <<'EOF'
 }
 EOF
 
+cat > README.md <<'EOF'
+# bench-app
+
+A tiny orders service. Orders live in memory; the only integration is a CSV export.
+
+## CSV export format
+
+The export is consumed by accountants, so the column types are fixed:
+
+| Column | Type | Example |
+|---|---|---|
+| `id` | integer | `3` |
+| `status` | `paid` or `open` | `open` |
+| `total` | amount in PLN, **always two decimals** | `19.99` |
+| `date` | `YYYY-MM-DD` | `2026-01-07` |
+
+Amounts are stored in cents in [src/db.mjs](src/db.mjs) and formatted for export.
+EOF
+
 cat > AGENTS.md <<'EOF'
 # bench-app
 
 A tiny orders service with a CSV export. No dependencies; Node 20+.
+
+Read [README.md](README.md) for the export format: amounts are always two decimals.
 
 ## Workflow
 - Base branch: main

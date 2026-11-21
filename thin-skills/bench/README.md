@@ -26,16 +26,27 @@ Each run directory contains `transcript.txt` (the agent's answer), `checks.txt` 
 
 ## Agent command
 
-Default: `claude -p --permission-mode bypassPermissions`, run inside the throwaway fixture. Permissions are bypassed because the run is unattended; nothing outside the run directory is in scope. To use another model or harness, set `AGENT_CMD` to any command that takes the prompt as its last argument:
+`AGENT` picks the command line, `AGENT_CMD` overrides it, and `MODEL` is passed through to `pi`/`codex`:
+
+| `AGENT` | Default command |
+|---|---|
+| `claude` (default) | `claude -p --permission-mode bypassPermissions --output-format stream-json --verbose` |
+| `pi` | `pi -p --mode json --no-session --no-extensions --no-mcp --no-prompt-templates --no-themes --no-skills [--skill .agents/skills]` |
+| `codex` | `codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox` |
 
 ```bash
-AGENT_CMD="claude -p --permission-mode bypassPermissions --model claude-sonnet-5-5" ./run.sh 2 with
+AGENT=pi ./run.sh 4 with
+AGENT=pi MODEL=openai-codex/gpt-6.1-sol TIMEOUT_S=600 ./run.sh 4 with
 ```
 
-`TIMEOUT_S` (default 900) turns a hang into a failed run instead of a stuck terminal.
+In `pi` mode the `without` baseline runs with `--no-skills`, and the `with` mode loads only the fixture's copy, so user-level skills can't leak into either side. Permissions are bypassed because the run is unattended; nothing outside the run directory is in scope.
+
+`TIMEOUT_S` (default 900) turns a hang into a failed run instead of a stuck terminal. It is a real timeout (coreutils `timeout`, or a forking parent that kills the child) — `perl -e 'alarm; exec'` does not work, because the alarm does not survive `exec`.
 
 ## Known limits
 
-- **Single turn.** Each run is one prompt. That fits the "stops and asks" criteria (spec, think, auto mode), but follow-up turns aren't scored.
+- **Single turn.** Each run is one prompt. That fits the "stops and asks" criteria (spec, think, auto mode), but follow-up turns aren't scored — a skill that asks a fair question then loses the point it would have earned on the answer is scored as if it failed.
+- **One run per cell is not enough.** Scenario 4 scored 2/5 and 4/5 on two draws of the same prompt with the same model. Use three.
+- **The `claude` path** parses `--output-format stream-json`; `pi` is parsed from `--mode json`. For any other agent the raw output becomes the transcript and `skills-used.txt` stays empty, so skill activation has to be read by hand.
 - **User-level skills and plugins** load in both modes and add noise to the "without" baseline. For a clean baseline, run with an agent config that has no global skills.
 - **No GitHub.** The remote is a local bare repo, so `gh` calls fail. The skills are expected to say so and continue.

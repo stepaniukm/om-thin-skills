@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Runs one benchmark scenario once, with or without thin-skills installed in the fixture.
 # usage: run.sh <scenario 1-12> <with|without> [runs-dir]
-# env:   AGENT_CMD   command that takes the prompt as its last argument
-#                    (default: claude -p --permission-mode bypassPermissions)
+# env:   AGENT       claude | pi | codex, picks the default AGENT_CMD (default: claude)
+#        AGENT_CMD   command that takes the prompt as its last argument; overrides AGENT
+#        MODEL       optional model id passed to pi / codex
 #        TIMEOUT_S   seconds before the run counts as hung (default 900)
 set -euo pipefail
 
@@ -11,8 +12,29 @@ SKILLS_SRC=$(cd "$HERE/.." && pwd)
 S=${1:?scenario 1-12}
 MODE=${2:?with|without}
 OUT=${3:-$HERE/runs}
-AGENT_CMD=${AGENT_CMD:-claude -p --permission-mode bypassPermissions --output-format stream-json --verbose}
+AGENT=${AGENT:-claude}
 TIMEOUT_S=${TIMEOUT_S:-900}
+
+# Per-agent defaults. Both agents get the same skills (installed below into .agents/skills and
+# .claude/skills); the "without" mode must load no user-level skills, or the baseline is noise.
+case $AGENT in
+  claude)
+    AGENT_CMD=${AGENT_CMD:-claude -p --permission-mode bypassPermissions --output-format stream-json --verbose}
+    ;;
+  pi)
+    # --no-skills turns off user-level discovery; the fixture's skills are loaded explicitly.
+    PI_SKILLS=""; [ "$MODE" = with ] && PI_SKILLS="--skill .agents/skills"
+    PI_MODEL=""; [ -n "${MODEL:-}" ] && PI_MODEL="--model $MODEL"
+    AGENT_CMD=${AGENT_CMD:-pi -p --mode json --no-session --no-extensions --no-mcp --no-prompt-templates --no-themes --no-skills $PI_MODEL $PI_SKILLS}
+    ;;
+  codex)
+    CODEX_MODEL=""; [ -n "${MODEL:-}" ] && CODEX_MODEL="--model $MODEL"
+    AGENT_CMD=${AGENT_CMD:-codex exec --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox $CODEX_MODEL}
+    ;;
+  *)
+    echo "AGENT must be claude|pi|codex (or set AGENT_CMD)" >&2; exit 2
+    ;;
+esac
 
 # Scenario 7 is scored on a scenario 4 run (same prompt, different criterion).
 PROMPT_ID=$S; [ "$S" = 7 ] && PROMPT_ID=4
@@ -57,26 +79,70 @@ git -C "$APP" for-each-ref --format='%(refname) %(objectname)' > "$RUN/refs.befo
 git -C "$RUN/origin.git" for-each-ref --format='%(refname) %(objectname)' > "$RUN/origin.before"
 
 echo "run: $RUN"
+
+# A real timeout: `perl -e 'alarm; exec'` loses the alarm at exec, so a stalled agent hung the
+# whole suite. Prefer coreutils' timeout and fall back to a forking parent that can kill the child.
+run_with_timeout() {
+  local secs=$1 code; shift
+  if command -v timeout >/dev/null 2>&1; then timeout "$secs" "$@"; code=$?
+  elif command -v gtimeout >/dev/null 2>&1; then gtimeout "$secs" "$@"; code=$?
+  else
+    perl -e '
+      my $secs = shift; my $pid = fork;
+      if (!$pid) { exec @ARGV; exit 127 }
+      $SIG{ALRM} = sub { kill 9, $pid; exit 142 };
+      alarm $secs; waitpid $pid, 0;
+      my $status = $? >> 8;
+      exit($status ? $status : ($? ? 128 + ($? & 127) : 0));
+    ' "$secs" "$@"; code=$?
+  fi
+  [ "$code" = 124 ] && code=142   # GNU timeout's code for "timed out"
+  return "$code"
+}
+
 set +e
-(cd "$APP" && perl -e 'alarm shift; exec @ARGV' "$TIMEOUT_S" $AGENT_CMD "$(cat "$PROMPT_FILE")") > "$RUN/raw-output.txt" 2>&1
-echo $? > "$RUN/exit-code"
+(cd "$APP" && run_with_timeout "$TIMEOUT_S" $AGENT_CMD "$(cat "$PROMPT_FILE")") > "$RUN/raw-output.txt" 2>&1
+code=$?
+echo $code > "$RUN/exit-code"
 set -e
 
-# Stream-json output (Claude Code) → final answer + which skills were invoked. Other agents: raw output as is.
+# Event stream → final answer + which skills were invoked. Handles Claude Code's stream-json
+# and pi's --mode json. Other agents: the raw output is used as the transcript.
 python3 - "$RUN" <<'PY'
-import json, sys, pathlib
+import json, re, sys, pathlib
 run = pathlib.Path(sys.argv[1]); raw = (run / "raw-output.txt").read_text(errors="replace")
 result, skills, tools = None, [], {}
+SKILL_PATH = re.compile(r"\.agents/skills/([a-z-]+)/SKILL\.md")
+
+def note_skill_args(args):
+    for s in SKILL_PATH.findall(json.dumps(args)):
+        if s not in skills: skills.append(s)
+
 for line in raw.splitlines():
     try: e = json.loads(line)
     except ValueError: continue
-    if e.get("type") == "assistant":
+    kind = e.get("type")
+    if kind == "assistant":  # Claude Code
         for c in e.get("message", {}).get("content", []):
             if c.get("type") == "tool_use":
                 tools[c["name"]] = tools.get(c["name"], 0) + 1
                 if c["name"] == "Skill": skills.append(c["input"].get("skill", "?"))
-    elif e.get("type") == "result":
-        result = e.get("result", "")
+                note_skill_args(c.get("input", {}))
+    elif kind == "result" and e.get("result") is not None:  # Claude Code final answer
+        result = e["result"]
+    elif kind == "agent_end":  # pi
+        texts = []
+        for m in e.get("messages", []):
+            if m.get("role") != "assistant": continue
+            for b in (m.get("content") or []):
+                if not isinstance(b, dict): continue
+                if b.get("type") == "text" and b.get("text"):
+                    texts.append(b["text"])
+                elif b.get("type") == "toolCall":
+                    name = b.get("name", "?")
+                    tools[name] = tools.get(name, 0) + 1
+                    note_skill_args(b.get("arguments", {}))
+        if texts: result = "\n\n".join(texts)
 (run / "transcript.txt").write_text(result if result is not None else raw)
 (run / "skills-used.txt").write_text(" ".join(skills) + "\n")
 (run / "tools-used.txt").write_text(" ".join(f"{k}:{v}" for k, v in sorted(tools.items())) + "\n")

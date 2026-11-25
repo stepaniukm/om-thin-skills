@@ -16,9 +16,19 @@ Find the questions worth asking real users. The output is hypotheses, never evid
 5. **No numbers invented by personas** (prices, percentages, frequencies) **and no "validated".** Counting how many personas hit a problem is fine. Every finding ends with how to check it with real users.
 6. **Writes only the report.** Never edits the brief or spec; `discover` or `spec` takes the hypotheses in.
 
+## Where files go
+
+By default all work happens in its own worktree, created before the first file is written:
+
+- If the user names a location (for example the current checkout), write there and create no worktree.
+- Already in a linked worktree that holds this work, or given its path → use it.
+- Otherwise `git fetch origin <base>` (if it fails, use the local `<base>` and say so), then `git worktree add -b docs/<slug> <main>/../<repo-dir>.worktrees/<slug> origin/<base>`, where `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir` and `<repo-dir>` is its name. If that branch or path already holds other work, choose another slug.
+
+Copy uncommitted inputs this work links to into the worktree at the same relative paths, and report which originals are now outdated. Never overwrite or delete them. Report the worktree path; commit nothing.
+
 ## Workflow
 
-1. **Basis.** Read the subject (brief, spec, prototype, or app with a flow) and the real material in `<specs>/research/`. Hold back one or two real interviews, if there are enough, to compare with the panel at the end.
+1. **Basis.** `<specs>` (default `.ai/specs`) and `<base>` come from the `## Workflow` section of `AGENTS.md`/`CLAUDE.md`. Read the subject (brief, spec, prototype, or app with a flow) and the real material in `<specs>/research/`. Hold back one or two real interviews, if there are enough, to compare with the panel at the end.
 2. **Panel.** Propose 4–6 personas: role, situation, goals, constraints, tools, objections, each with its source. Match the proportions in the data when known, and always include one person for whom this barely matters. **Show the panel and wait for a yes**: this is the only stop.
 3. **Interview** each persona in its subagent (agent-only prompt, dense): its sourced profile; five questions about past behavior; one simulated decision under pressure; "answer with the first reaction, then the considered one". Keep it short.
 4. **Walk the flow** one step at a time as each persona: what they notice first, what they expect, what happens, where they get stuck, what's missing. For a prototype or the app, the main agent operates the browser as in `qa` and takes screenshots.

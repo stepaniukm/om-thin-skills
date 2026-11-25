@@ -130,7 +130,7 @@ anything out of scope ──► .ai/findings.md ──► triage
 
 1. **One skill = one stage, one artifact, one stopping point.** No variants or aliases.
 2. **A human approves each transition.** A skill never runs the next one on its own; it suggests it.
-3. **No side effects outside the worktree**, except in skills named after the effect (`ship`, `triage`).
+3. **No side effects outside the worktree**, except in skills named after the effect (`ship`, `triage`), the approved `discover` backlog, an approved `--post` comment, or a location the user names.
 4. **No claims, labels, locks, or automerge.**
 5. **Configuration is one section in `AGENTS.md`/`CLAUDE.md`** (validation commands, the specs dir); no separate JSON and no auto-setup.
 6. **Each skill is self-contained and short** instead of sharing drifting `references/` copies.

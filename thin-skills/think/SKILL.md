@@ -9,7 +9,7 @@ A conversation before any artifact exists. The output is one decision.
 
 ## Non-negotiables
 
-1. No code edits, specs, issues, or branches during the conversation. "It's simple, I'll just do it" is the red flag.
+1. No code edits, specs, issues, or branches during the conversation (saving the brief in step 6 is the only write). "It's simple, I'll just do it" is the red flag.
 2. Ask **one question per message**. Each question states what is being decided, why it matters, the options with their consequences, and your recommendation.
 3. "Build nothing" is always one of the options.
 4. Never run the next skill. End with `Next: <skill> <args>` or `Next: none`.
@@ -33,8 +33,19 @@ A conversation before any artifact exists. The output is one decision.
    | A small, clear change (about 5 steps or fewer, no product questions) | `Next: build` |
    | Already tracked | `Next: build #<n>`, or none |
 
-5. **Brief** (for spec, debug, or build) — in chat. Save it to `<specs>/briefs/<YYYY-MM-DD>-<slug>.md` only if the user continues in another session (`<specs>` from the `## Workflow` section of `AGENTS.md`/`CLAUDE.md`, default `.ai/specs`). The brief contains: the goal; the problem (who has it, evidence); the decision and the rejected options with reasons; non-goals; questions already answered, each written out with its answer; and questions still open. Every file, issue, or PR in it is a Markdown link.
-6. **Report** in 3–5 lines: the decision, the decisive reason, the main caveat, and the `Next:` line.
+5. **Challenge** (only before routing to `discover` or `spec`). Give a fresh-context subagent a summary of the conversation and ask: "Is the problem real, or a solution in disguise? Was building nothing weighed fairly? Is the next step the right size? Which assumption was never tested?" Bring anything that would change the decision back to the user as a question; never answer it yourself. No subagents → do it inline and say so.
+6. **Brief** (for spec, debug, or build) — in chat. If the user continues in another session, save it in the worktree (see below) to `<specs>/briefs/<YYYY-MM-DD>-<slug>.md` (`<specs>` from the `## Workflow` section of `AGENTS.md`/`CLAUDE.md`, default `.ai/specs`). The brief contains: the goal; the problem (who has it, evidence); the decision and the rejected options with reasons; non-goals; questions already answered, each written out with its answer; and questions still open. Every file, issue, or PR in it is a Markdown link.
+7. **Report** in 3–5 lines: the decision, the decisive reason, the main caveat, and the `Next:` line.
+
+## Where files go
+
+By default all work happens in its own worktree, created before the first file is written:
+
+- If the user names a location (for example the current checkout), write there and create no worktree.
+- Already in a linked worktree that holds this work, or given its path → use it.
+- Otherwise `git fetch origin <base>` (if it fails, use the local `<base>` and say so), then `git worktree add -b feat/<slug> <main>/../<repo-dir>.worktrees/<slug> origin/<base>`, where `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir` and `<repo-dir>` is its name. If that branch or path already holds other work, choose another slug.
+
+Copy uncommitted inputs this work links to into the worktree at the same relative paths, and report which originals are now outdated. Never overwrite or delete them. Report the worktree path; commit nothing.
 
 ## Example question
 

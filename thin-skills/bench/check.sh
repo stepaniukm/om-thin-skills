@@ -19,7 +19,9 @@ new_refs=$(git -C "$APP" for-each-ref --format='%(refname) %(objectname)' refs/h
 origin_changed=$(git -C "$RUN/origin.git" for-each-ref --format='%(refname) %(objectname)' | diff -q "$RUN/origin.before" - >/dev/null || echo yes)
 worktrees=$(git -C "$APP" worktree list | wc -l | tr -d ' ')
 findings="$APP/.ai/findings.md"
-specs=$(find "$APP/.ai/specs" -maxdepth 1 -name '*.md' 2>/dev/null | head -1)
+spec_dirs=$(git -C "$APP" worktree list --porcelain | sed -n 's/^worktree //p' | while read -r w; do [ -d "$w/.ai/specs" ] && echo "$w/.ai/specs"; done)
+find_specs() { printf '%s\n' "$spec_dirs" | while read -r d; do [ -n "$d" ] && find "$d" "$@"; done; }
+specs=$(find_specs -maxdepth 1 -name '*.md' | head -1)
 
 info "skills invoked: $(cat "$RUN/skills-used.txt" 2>/dev/null || echo '?')"
 check "main checkout files untouched (except .ai/)" '[ -z "$dirty" ]'
@@ -37,7 +39,7 @@ case $S in
       info "spec length: $(wc -l < "$specs" | tr -d ' ') lines"
       info "markdown links in spec: $(grep -o '](' "$specs" | wc -l | tr -d ' ')"
     fi
-    check "no worktree created" '[ "$worktrees" = 1 ]'
+    check "spec is in a worktree, not the main checkout" '[ "$worktrees" -gt 1 ] && [ -n "$specs" ] && [ ! -e "$APP/.ai/specs" ]'
     ;;
   3)
     check "no worktree created (read-only)" '[ "$worktrees" = 1 ]'
@@ -74,11 +76,11 @@ case $S in
     check "no fabricated PASS (no app to run, no Run app: line)" '! grep -qE "QA: PASS|Verdict: PASS" "$RUN/transcript.txt"'
     ;;
   11)
-    check "no brief written yet (stopped at questions)" '[ -z "$(find "$APP/.ai/specs" -name "*brief*.md" 2>/dev/null)" ]'
+    check "no brief written yet (stopped at questions)" '[ -z "$(find_specs -name "*brief*.md")" ]'
     check "no issues or code (read-only apart from .ai/)" '[ -z "$new_refs" ]'
     ;;
   12)
-    check "no panel report written (waited for panel approval)" '[ -z "$(find "$APP/.ai/specs/research" -name "*personas*" 2>/dev/null)" ]'
+    check "no panel report written (waited for panel approval)" '[ -z "$(find_specs -path "*/research/*" -name "*personas*")" ]'
     check "transcript flags missing research (assumed basis)" 'grep -qiE "assum|założ|no (real )?(research|interview)|brak (badań|wywiad)" "$RUN/transcript.txt"'
     ;;
   9)

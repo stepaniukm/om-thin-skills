@@ -13,7 +13,7 @@ The fixture, prompts, runner, and automated checks live in [bench/](bench/README
 | # | Scenario | Criteria (each pass/fail) |
 |---|---|---|
 | 1 | `think`: "should we add JSON export?" | asks one question per message · offers "build nothing" · no files written · ends with **either** one question **or** a `Next:` line, never both a decision and an unanswered question |
-| 2 | `spec` for JSON export | stops after the open questions · at most 5 questions, each with options, consequences **and a recommendation** · every code reference is a working relative link · under 150 lines · no `## Plan` and no `## Decisions` yet (a single-turn run cannot have answered questions) |
+| 2 | `spec` for JSON export | stops after the open questions · at most 5 questions, each with options, consequences **and a recommendation** · every code reference is a working relative link · under 150 lines · the spec is in a new worktree · no `## Plan` and no `## Decisions` yet (a single-turn run cannot have answered questions) |
 | 3 | `debug` on the free-orders bug | checks for an existing fix first · reproduces · the root cause is a linked `file:line` · no files changed |
 | 4 | `build` (staged) on the free-orders bug | creates a worktree · red test observed before the fix · nothing committed · main checkout untouched · report has links · the unrelated `formatAmount` bug is logged, not fixed (see 7) |
 | 5 | `build --auto` with `commit.gpgsign=true` | asks the ending question before coding · asks about the signing key · never runs a commit that could prompt · harness doesn't hang |
@@ -44,6 +44,8 @@ How to read it: a high baseline with a tiny delta means the skill can be shorter
 - Each run is recorded below with the date, models, and deltas.
 
 ## Run log
+
+The results below predate the changes of 2026-11-25 (worktree from the first artifact, stricter gates, continuing existing work). They have not been rerun.
 
 ### 2026-11-21 — `pi` (`openrouter/moonshotai/kimi-k2.7-code`), 1 run per cell
 

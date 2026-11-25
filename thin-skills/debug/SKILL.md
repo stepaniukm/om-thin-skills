@@ -9,7 +9,7 @@ Answer three questions with evidence: is it real, why does it happen, and what i
 
 ## Non-negotiables
 
-1. Read-only: no edits, commits, branches, or GitHub writes.
+1. Read-only on code: no edits, commits, or GitHub writes. Throwaway reproduction scripts go outside the repo.
 2. No evidence → the verdict is **not** "Real". Low confidence is a valid answer; say it.
 3. Check for an existing fix **before** investigating.
 4. Every `file:line`, issue, PR, and commit in the output is a **clickable Markdown link**.
@@ -17,7 +17,7 @@ Answer three questions with evidence: is it real, why does it happen, and what i
 
 ## Workflow
 
-1. **Already handled?** Run `gh pr list --search "<issue number or key words>" --state all --limit 10` and `git log origin/<base> --oneline --grep "<key words>"` (`<base>` from the `## Workflow` section of `AGENTS.md`/`CLAUDE.md`). A merged fix or an open PR → stop and cite it. Input: `gh issue view <n> --json number,title,body,comments`, a description, or a trace.
+1. **Already handled?** Run `git fetch origin <base>` (if it fails, say the check may be stale), then `gh pr list --search "<issue number or key words>" --state all --limit 10` and `git log origin/<base> --oneline --grep "<key words>"` (`<base>` from the `## Workflow` section of `AGENTS.md`/`CLAUDE.md`). A merged fix or an open PR → stop and cite it. Input: `gh issue view <n> --json number,title,body,comments,assignees`, a description, or a trace.
 2. **Real?** Reproduce cheaply: one test, a short script, or one command. Not the full suite. If it doesn't reproduce, check whether the behavior is documented or intended, or whether it's a usage error.
 3. **Root cause.** Trace trigger → code path → wrong result, with `file:line`. Look for code that departs from the local pattern (skipping validation, data-access, or permission helpers that the surrounding code uses).
 4. **Minimal change.** Name the smallest unit that owns the bug, with no refactors, and the regression test that fails today.
@@ -52,7 +52,17 @@ Noticed, out of scope: none
 Next: build #231
 ```
 
-If the user continues in another session, save the output to `<specs>/briefs/<YYYY-MM-DD>-<slug>-diagnosis.md` (links relative to that file).
+If the user continues in another session, save the output in the worktree (below) to `<specs>/briefs/<YYYY-MM-DD>-<slug>-diagnosis.md` (links relative to that file).
+
+## Where files go
+
+By default all work happens in its own worktree, created before the first file is written:
+
+- If the user names a location (for example the current checkout), write there and create no worktree.
+- Already in a linked worktree that holds this work, or given its path → use it.
+- Otherwise `git fetch origin <base>` (if it fails, use the local `<base>` and say so), then `git worktree add -b fix/<slug> <main>/../<repo-dir>.worktrees/<slug> origin/<base>`, where `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir` and `<repo-dir>` is its name. If that branch or path already holds other work, choose another slug.
+
+Copy uncommitted inputs this work links to into the worktree at the same relative paths, and report which originals are now outdated. Never overwrite or delete them. Report the worktree path; commit nothing.
 
 ## Rules
 

@@ -18,7 +18,17 @@ Decide how a feature should work for its user, show it, or check it. Never edits
 
 ## Context
 
-Read the brief or spec if there is one, the screens nearby, and the design system: the components and tokens the app already uses. If the `## Workflow` section has `Design system: <path>`, start there. Reuse what exists; a new component needs a reason.
+`<specs>` comes from the `## Workflow` section of `AGENTS.md`/`CLAUDE.md` (default `.ai/specs`), `<base>` too. Read the brief or spec if there is one, the screens nearby, and the design system: the components and tokens the app already uses. If the `## Workflow` section has `Design system: <path>`, start there. Reuse what exists; a new component needs a reason.
+
+## Where files go (shape and prototype)
+
+By default all work happens in its own worktree, created before the first file is written:
+
+- If the user names a location (for example the current checkout), write there and create no worktree.
+- Already in a linked worktree that holds this work, or given its path → use it.
+- Otherwise `git fetch origin <base>` (if it fails, use the local `<base>` and say so), then `git worktree add -b feat/<slug> <main>/../<repo-dir>.worktrees/<slug> origin/<base>`, where `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir` and `<repo-dir>` is its name. If that branch or path already holds other work, choose another slug.
+
+Copy uncommitted inputs this work links to into the worktree at the same relative paths, and report which originals are now outdated. Never overwrite or delete them. Report the worktree path; commit nothing.
 
 ## Shape (default)
 
@@ -37,18 +47,18 @@ Read the brief or spec if there is one, the screens nearby, and the design syste
 1. **Confirm the scope** in one message: the actor, the start, the success state, the list of screens and states, and the assumptions the prototype makes.
 2. **Build** `<specs>/prototypes/<slug>/index.html`: static HTML, CSS, and small inline scripts; no network; fake data; working back navigation and a reset. Use the app's look (tokens, component styles) when the flow is decided; use neutral wireframes while it's still a product question.
 3. **Check it in a browser** (the same tool `qa` uses): every step of the flow and every listed state is reachable. Report what you checked; if no browser is available, say `Verification: not run`.
-4. **Report**: a link to the prototype, how to open it, the assumptions it bakes in.
+4. **Report**: a link to the prototype, how to open it, the assumptions it bakes in. Ask whether the user accepts this version; only then, and if a spec exists and they agree, add `Prototype: <link>` to it.
 
 ## Review
 
-1. **Run the app and the browser** as the `qa` skill does (target, `Run app:`, QA login; stop only what you started).
+1. **Run the app and the browser.** Use the `Run app: <command> → <url>` and `QA login:` lines of the `## Workflow` section (missing → ask). Target: the current worktree, or a temporary one at the branch or PR head, removed afterwards. If the URL already responds, confirm it serves the target; otherwise start the app in the background with a time limit on another port if needed. Use the harness's browser tool; if there is none, stop. Stop only what you started.
 2. **Walk, don't glance.** For each changed screen, enter as its user and do the main task: create, edit, delete. Create the data you need through the UI. If `<specs>/research/personas-*.md` exists, walk as those personas and name them.
-3. **Check** the states from rule 4, consistency with neighboring screens and the design system, wording, and keyboard use. Save a screenshot for each problem.
+3. **Check** the states from rule 4, consistency with neighboring screens and the design system, wording, and keyboard use. Save a screenshot for each problem. If the spec has a `Prototype:` line, compare flow, states, and wording with it and report unexplained differences.
 4. **Rank** by user impact (how bad × how often × how many), not by ease of fixing:
    ```
    - [high] <screen, linked to the code> — <what the user experiences> → <the fix and how we'd know it worked> · [screenshot](03-empty.png)
    ```
-5. **Report** to `<main>/.ai/qa/<date>-<slug>-ux/report.md` (local, excluded) and in chat. Read-only: nothing posted to GitHub. Problems outside the change go to `<main>/.ai/findings.md` (`Source: ux review`).
+5. **Report** to `<main>/.ai/qa/<date>-<slug>-ux/report.md` (local, excluded) and in chat. Read-only: nothing posted to GitHub. Problems outside the change go to `<main>/.ai/findings.md` (`## <date> · <title>`, `Source: ux review`, `Where:`, `What:`, `Why it matters:`, `Status: open`). `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir`; add `.ai/qa/` and `.ai/findings.md` to `<main>/.git/info/exclude` if missing.
 
 ## Example (shape result, one screen)
 

@@ -20,9 +20,10 @@ Verify one change the way a person would: in the browser, with evidence. Read-on
 1. **Config** from the `## Workflow` section of `AGENTS.md`/`CLAUDE.md`: base branch, and these QA lines:
    - `Run app: <command> → <url>` (required; if missing, ask and suggest the line, but don't write it);
    - `QA login: <user>, password in env <VAR>` (optional).
-2. **Target.** Default: the current worktree as it is, including uncommitted changes; don't stash or switch branches. A branch or PR (`gh pr view <n>`) → a temporary worktree at its head, removed afterwards; for PRs use the PR's own base. Validate and quote externally supplied IDs and refs. In a new worktree run the install command and the `Worktree setup:` command if configured.
+2. **Target.** Default: the current worktree as it is, including uncommitted changes; don't stash or switch branches. A branch or PR (`gh pr view <n>`) → a temporary worktree at its head, removed afterwards; for PRs use the PR's own base. Validate and quote externally supplied IDs and refs. In a new worktree run the install command and the `Worktree setup:` command if configured, after the Data check below.
 3. **Browser.** Use the browser tool the harness provides (for example a Playwright MCP server, a Chrome extension, or the `playwright` CLI). If there is none, stop and say what to install.
-4. **App.** If the URL already responds, check it is served from the target. If it isn't, start the target on another free port; if that's not possible, stop. Otherwise run the install command if needed, start the app in the background, and wait for the URL.
+4. **Data.** If the change adds or alters migrations, the app must use a database separate from the main checkout's: a copied `.env` often points at the same one, and migrating it breaks other branches. Check before running install, setup, or the app, because any of them may migrate; compare the database targets without printing credentials. If separation can't be confirmed, report `QA: BLOCKED` and say what to configure. Never edit `.env` or create a database yourself.
+5. **App.** If the URL already responds, check it is served from the target. If it isn't, start the target on another free port; if that's not possible, stop. Otherwise run the install command if needed, start the app in the background, and wait for the URL.
 
 ## Workflow
 
@@ -65,7 +66,7 @@ No UI test covers this change; logged to findings.
 
 Bind evidence to the tree actually served throughout the run: a clean commit's SHA and tree ID, or `git write-tree` if the app ran the fully staged content without unstaged or untracked inputs included. Otherwise the working diff is unbound and cannot satisfy an automatic publish gate.
 
-The verdict is PASS only if every step passed. FAIL if any failed. PARTIAL if everything that ran passed but required steps weren't exercised. BLOCKED if the app or browser couldn't start. A step that truly doesn't apply is not required; a missing account or service is not "doesn't apply".
+The verdict is PASS only if every step passed. FAIL if any failed. PARTIAL if everything that ran passed but required steps weren't exercised. BLOCKED if the app or browser couldn't start, or couldn't be started safely (untrusted target, shared database). A step that truly doesn't apply is not required; a missing account or service is not "doesn't apply".
 
 ## Rules
 

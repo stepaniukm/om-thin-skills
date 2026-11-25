@@ -48,8 +48,9 @@ Review and QA verdicts apply only to the published content they identify. For a 
 ## Waiting for CI
 
 1. **Wait** with `gh pr checks <n> --watch --fail-fast`, bounded by `CI wait: <minutes>` from the `## Workflow` section (default 30), using the harness's command timeout or a background run. Checks can take a minute to appear; "no checks reported" right after the push means wait and retry, up to 3 times. Still none → `CI: none configured`.
-2. **Green** → report. **Still running** at the time limit → report `CI: pending` with the link and stop.
-3. **Red** → read the failing logs (`gh run view <run-id> --log-failed`) and decide:
+2. **Completeness.** A short check list is not a green one: a queued run adds no checks until its jobs start. Before reporting green, run `gh run list --commit <pushed SHA> --json name,status,conclusion --limit 100`; a run that isn't `completed` counts as still running, and one that failed or was cancelled counts as red (a newer run of the same workflow replaces it). Wait within the same time limit, then read `gh pr checks <n>` again. If runs can't be read, report `CI: unverified`, not green.
+3. **Green** (every check and run finished, none red) → report. **Still running** at the time limit → report `CI: pending` with the link and stop.
+4. **Red** → read the failing logs (`gh run view <run-id> --log-failed`) and decide:
    - **Caused by this change, with a clear fix** → without `--yes`, propose the fix and stop. With `--yes`, fix it in the worktree, rerun the local gate, stage by path, commit (`fix(ci): <summary>`; the signing rule applies), apply the evidence rule above, then push and wait once more only if allowed. Red again → stop.
    - **Not caused by this change** (the same failure also appears on `<base>`, or it's infrastructure, a flaky test, or an expired secret) → don't touch it. Report it and add it to `<main>/.ai/findings.md` (`## <date> · <title>`, `Source: ship <branch>`, `Where:`, `What:`, `Why it matters:`, `Status: open`). `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir`; add the path to `<main>/.git/info/exclude` if missing.
    - **Unclear** → stop and report.

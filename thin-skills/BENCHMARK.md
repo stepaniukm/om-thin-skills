@@ -53,6 +53,34 @@ How to read it: a high baseline with a tiny delta means the skill can be shorter
 
 ## Run log
 
+### 2026-11-25 — `debug` and `review` tightened (same model, scenarios 3 and 6, with skills only)
+
+Findings logging and line checks became a numbered step. Three samples per iteration; automated checks passed in all 15 runs, so these are manual counts.
+
+| | First run today | Final wording |
+|---|---:|---:|
+| 3: root-cause line correct | 1/3 | 3/3 |
+| 3: out-of-scope bug logged | 1/3 | 3/3 |
+| 6: out-of-scope bug logged | 2/3 | 3/3 |
+| 6: lines of in-diff findings correct | 3/3 | 3/3 |
+
+Intermediate wordings had failures: the diagnosed bug was logged as a finding (2/3 of scenario 3), a finding inside the diff was logged (1/3 of 6), and lines of in-diff findings were wrong (1/3 of 6). Still seen with the final wording: one wrong out-of-scope line (4 instead of 3) and one out-of-scope item without a link, both in 6; the dates of 2 of 3 findings in 6 were invented. Wording was tuned on these two scenarios, so treat this as a small, in-sample result.
+
+### 2026-11-25 — after six fixes (`pi`, `openrouter/moonshotai/kimi-k2.7-code`)
+
+Scenarios 3–7, 10, 13, 14, 16; three samples with the skills, **one** without. A run passes if all its automated checks pass.
+
+| Scenario | Without | With |
+|---|---:|---:|
+| 3, 4, 5, 6 | 0/1 each | 3/3 each |
+| 7 | 0/1 | 2/3 |
+| 10, 13, 14, 16 | 1/1 each | 3/3 each |
+| **Total** | **4/9** | **26/27** |
+
+- No timeouts or pushes. The expected skill loaded in 26/27 runs; one scenario 7 run never loaded `build`, fixed the unrelated bug in the main checkout and deleted `src/legacy/notify.mjs`. Another loaded it from `.claude/skills`, which `skills-used.txt` misses for `pi`.
+- Manual misses despite passing checks: wrong `file:line` for the root cause in 2/3 of scenario 3; findings mentioned but not logged in 3/6 of scenarios 3 and 6; plain-text locations in one run of 6; an unconfigured second opinion offered in one run of 5; a draft PR suggested for unverified commit B in one run of 13.
+- Not exercised: CI completeness, `contradicts brief`, untracked files in review, install in temporary worktrees, the shared-database stop, regressions after a merged fix. This is a regression check, not evidence that those rules work. Scenarios 1, 2, 8, 9, 11, 12 and 15 were not run, so the release gate for the full pack is still not established.
+
 ### 2026-11-25 — audit closeout (`pi`, `openrouter/moonshotai/kimi-k2.7-code`)
 
 Ran scenarios 1–16 in both modes, one sample per cell (32 runs). Automated checks passed in **11/16 with** and **6/16 without**. These are runner-check counts, not aggregate manual rubric scores. Raw output: `/tmp/thin-final-bench.5Q9acA` on the runner machine.

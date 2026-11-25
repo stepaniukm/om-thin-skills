@@ -75,7 +75,7 @@ Then follow the steps below. A behavior fix still needs a regression test.
 
 ### 4. Validation gate
 
-Run every validation command, in order. Fix new failures. A failure you didn't cause counts as **pre-existing** only when the same failures appear on `origin/<base>` (check in a temporary worktree, then remove it). The same failures means the same individual tests, lint errors, or type errors with the same message, compared one by one. Any additional or different failure is caused by this change until proven otherwise; if the output can't be compared (for example the command aborted early), it is not pre-existing. Report a pre-existing failure separately and add it to findings; don't fix it here. Any other failure keeps the gate red. If only verified baseline failures remain, report **No new failures; known failures remain**, not green.
+Run every validation command, in order. Fix new failures. A failure you didn't cause counts as **pre-existing** only when the same failures appear on `origin/<base>` (check in a temporary worktree after running the install command and `Worktree setup:` if configured, then remove it; if setup fails, nothing there counts as pre-existing). The same failures means the same individual tests, lint errors, or type errors with the same message, compared one by one. Any additional or different failure is caused by this change until proven otherwise; if the output can't be compared (for example the command aborted early), it is not pre-existing. Report a pre-existing failure separately and add it to findings; don't fix it here. Any other failure keeps the gate red. If only verified baseline failures remain, report **No new failures; known failures remain**, not green.
 
 A command that could not run is not a pass: the gate stays red. If validation changes files, inspect the resulting staged, unstaged and untracked changes. Keep only intended outputs; unexpected changes block handoff. Rerun downstream checks on the final content; if any earlier result no longer applies, rerun the full gate. If validation keeps changing the content, stop and report it.
 
@@ -100,7 +100,7 @@ Read `git status --short`, including untracked files, and stage by path (`git ad
 - **Auto, review:** if a fresh context isn't available, stop with local changes; never substitute self-review. Otherwise start a subagent with a fresh context and give it only: the `review` skill, the worktree path, `<base>`, the spec or diagnosis path, and `--second-opinion` if chosen. On "request changes", fix the blockers and majors, rerun the gate, and review once more.
 - **Auto, QA** (if chosen): follow `qa` on the worktree. On FAIL, fix what the change caused, rerun the gate, and run `qa` once more. If that edited code after an approved review, review the fix once more.
 - **Auto, ship:** follow `ship` on the worktree with `--yes`, the recorded `signing-ok`, the review and QA checks chosen for the run, each verdict and checked version, and the review's QA need. `ship` waits for CI.
-- Stop with local commits and push nothing if: still unapproved after two reviews, a disputed second-opinion blocker or major, a final QA verdict other than PASS (FAIL, PARTIAL, or BLOCKED; "no UI to check" is fine), a red gate, or an unexplained file.
+- Stop with local commits and push nothing if: still unapproved after two reviews, a disputed second-opinion blocker or major, a direction question marked `contradicts brief` (the brief's owner must decide), a final QA verdict other than PASS (FAIL, PARTIAL, or BLOCKED; "no UI to check" is fine), a red gate, or an unexplained file.
 
 ### 6. Report
 
@@ -116,7 +116,7 @@ Comments and findings: <each one: fixed | declined, why | logged | already handl
 Outdated originals: <links>                         (if files were copied)
 Review: <verdict + reason>                          (if it ran)
 QA: <verdict + report link>                         (if it ran)
-CI: <green | red: check + cause | pending>          (if shipped)
+CI: <green | red: check + cause | pending | unverified>          (if shipped)
 Noticed, out of scope: <self-explanatory one-liners, or "none">
 Next: review <path> | qa <path> | ship <path> | cleanup: git worktree remove <path>
 ```

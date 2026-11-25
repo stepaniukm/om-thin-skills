@@ -83,6 +83,12 @@ case $S in
     check "no panel report written (waited for panel approval)" '[ -z "$(find_specs -path "*/research/*" -name "*personas*")" ]'
     check "transcript flags missing research (assumed basis)" 'grep -qiE "assum|założ|no (real )?(research|interview)|brak (badań|wywiad)" "$RUN/transcript.txt"'
     ;;
+  13|14|15|16)
+    check "decision-only: agent exited successfully" '[ "$code" = 0 ]'
+    check "decision-only: no branches or worktrees created" '[ -z "$new_refs" ] && [ "$worktrees" = 1 ]'
+    check "decision-only: no tools other than skill discovery or reading" '[ -f "$RUN/tools-used.txt" ] && ! tr " " "\n" < "$RUN/tools-used.txt" | grep -qvE "^(read|Read|Skill|ls|Glob):[0-9]+$|^$"'
+    info "score decision and rationale manually; see BENCHMARK.md"
+    ;;
   9)
     check "findings file still present" '[ -f "$findings" ]'
     check "nothing filed (no confirmation given)" '! grep -q "filed #" "$findings"'

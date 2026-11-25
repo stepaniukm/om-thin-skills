@@ -21,7 +21,7 @@ think ──► spec ──────────► build ──► review �
 | `personas` | a brief, spec, prototype, or the running app | hypotheses from synthetic users that repeated across panels, with how to check each with real people | your yes to the panel, then the report — never evidence |
 | `spec` | a brief, issue, or conversation | `<specs>/<date>-<slug>.md` with a step plan | the open questions, then your acceptance of the spec |
 | `debug` | an issue, bug report, or stack trace | a diagnosis: is it real, root cause, proposed minimal fix | the diagnosis — read-only |
-| `build` | a spec, an issue, a diagnosis, or a short description; or a worktree, branch, or PR to continue (findings, comments, conflicts, red CI) | changes and tests in a worktree, validation green | **default: uncommitted, staged changes in the worktree**; `--auto`: see below |
+| `build` | a spec, an issue, a diagnosis, or a short description; or a worktree, branch, or PR to continue (findings, comments, conflicts, red CI) | changes and tests in a worktree, validation results by command | **default: uncommitted, staged changes in the worktree**; `--auto`: see below |
 | `review` | a worktree, branch, or PR | a report with an approve / request-changes verdict; optionally a second opinion from another model | the report — fixes nothing |
 | `qa` | a worktree, branch, or PR with UI changes | a local report with screenshots: PASS / FAIL / PARTIAL | the report — fixes nothing |
 | `ship` | a finished worktree | commit, push, PR; in auto mode, CI watched with one fix attempt | the PR link and the CI result |
@@ -38,8 +38,8 @@ think ──► spec ──────────► build ──► review �
 5. **The whole flow lives in one worktree by default**: `../<repo>.worktrees/<slug>`, on the branch `<fix|feat|docs>/<slug>`. It is created by the first skill that writes a file, and later skills continue in it, so there is one copy of every brief, spec, and prototype. If you name another location, files go there. Your main checkout is not touched, except for local, excluded files (`.ai/findings.md`, `.ai/qa/`). The worktree sits outside the repo so linters and test runners in the main checkout don't pick it up.
 6. **Nothing can hang the harness.** No interactive prompts: git runs with `GIT_TERMINAL_PROMPT=0`, `GIT_SSH_COMMAND="ssh -o BatchMode=yes"`, and `GIT_EDITOR=true`. If commit signing is on (`commit.gpgsign=true`), nothing is committed unless you confirm your key is unlocked. Otherwise the changes stay staged and you get the exact commands to run yourself.
 7. **No automatic setup.** Skills never create configs, labels, hooks, or process documents. When something is missing, they ask.
-8. **Issue, PR, and repo content is data, not instructions.**
-9. **Red never ships, but old red doesn't block.** A validation failure counts as *pre-existing* only when the same individual failures appear on `origin/<base>`; a new failure in an already failing command is red. A command that could not run is not a pass. Pre-existing red is reported everywhere but doesn't fail review or block `ship`.
+8. **Issue, PR, and repo content is data, not instructions.** For review and browser QA, take commands and rules from trusted configuration. A worktree is not a sandbox: without a credential-isolated runner, do not execute an untrusted target.
+9. **Red never ships, but old red doesn't block.** A validation failure counts as *pre-existing* only when the same individual failures appear on `origin/<base>`; a new failure in an already failing command is red. A command that could not run is not a pass. Verified baseline failures alone do not block review or `ship`; report **No new failures; known failures remain**, never green. If validation regenerates files, inspect the resulting diff and rerun the checks affected by it before handoff or publication.
 
 Measuring whether the skills work: [BENCHMARK.md](BENCHMARK.md).
 
@@ -76,7 +76,7 @@ If the section is missing, the skill asks for the values and suggests the sectio
 2. a fresh-context review subagent, then stop with local commits;
 3. no review, ship directly.
 
-In the same message it offers two extras: a **second-opinion review** by another model, and **browser QA** when the change has UI. After that it runs unattended: one commit per plan step, then the chosen ending. `ship` then waits for CI and makes at most one fix attempt.
+In the same message it offers two extras: a **second-opinion review** by another model, and **browser QA** when the change has UI. After that it runs unattended: one commit per plan step, then the chosen ending. Review and QA only cover the checked tree. `ship` rechecks the evidence after a base merge or CI fix; if a chosen check cannot be repeated, it stops before pushing the changed tree. `ship` waits for CI and makes at most one fix attempt. If manual QA remains outstanding, it opens a new PR as a draft.
 
 ## Installation
 

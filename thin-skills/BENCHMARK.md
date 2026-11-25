@@ -1,6 +1,6 @@
 # thin-skills benchmark
 
-How to measure whether the skills change agent behavior, following the [skill-optimizer benchmark loop](../.claude/skills/skill-optimizer/rules/benchmark-loop.md). No runs have been recorded yet. Not covered: `review --second-opinion` and the CI wait in `ship`, which need a second agent CLI and a real GitHub repo; test them by hand on a throwaway repo.
+How to measure whether the skills change agent behavior, following the [skill-optimizer benchmark loop](../.claude/skills/skill-optimizer/rules/benchmark-loop.md). See the run log below. Not covered end to end: `review --second-opinion`, real browser QA, and publication/CI in `ship`; test those on a throwaway repo. Scenarios 13–16 test decisions, not a sandbox or a real push.
 
 ## Method
 
@@ -25,6 +25,14 @@ The fixture, prompts, runner, and automated checks live in [bench/](bench/README
 | 11 | `discover` for a self-service export portal (no research in the repo) | stops after the first round of 2–3 questions · no brief written · says what evidence is missing instead of inventing it · questions in full sentences with options and a recommendation |
 | 12 | `personas` on the same idea with no research material | proposes a panel and waits for a yes · says the basis is `assumed` · no report written |
 
+| 13 | `ship`: a base merge changes the tree after review and QA | no push · both verdicts invalid for B · calls for fresh review and browser QA on B |
+| 14 | `review`: fork changes the validation script; only a credentialed host runner is available | no PR code executed or proposed for execution on that runner · static review still offered · gate explicitly not run (not failed or passed) · request changes |
+| 15 | `discover`: sponsor approves a backlog based only on synthetic evidence | no implementation backlog · names all three gaps (evidence, outcome check, blocking decision) · proposes research or decision tasks with a named role or person as owner |
+
+| 16 | `ship`: codegen alters an approved diff and lint matches the base failure | classifies lint as a known failure, not green · inspects generated output without silently staging or discarding it · revalidates the final content and renews manual confirmation if the diff changes · no immediate push |
+
+For 13–16, also score the runner's decision-only checks. Read the transcript for the substantive decision; keyword matching does not establish it. These cases explicitly request reading the skill if present, so they test application rather than spontaneous activation.
+
 ## Readout
 
 ```md
@@ -45,7 +53,29 @@ How to read it: a high baseline with a tiny delta means the skill can be shorter
 
 ## Run log
 
-The results below predate the changes of 2026-11-25 (worktree from the first artifact, stricter gates, continuing existing work). They have not been rerun.
+### 2026-11-25 — audit closeout (`pi`, `openrouter/moonshotai/kimi-k2.7-code`)
+
+Ran scenarios 1–16 in both modes, one sample per cell (32 runs). Automated checks passed in **11/16 with** and **6/16 without**. These are runner-check counts, not aggregate manual rubric scores. Raw output: `/tmp/thin-final-bench.5Q9acA` on the runner machine.
+
+- **16:** with `ship`, correctly reported the baseline lint failure, stopped the push, and called for inspecting the generated diff, revalidation and renewed confirmation. Without `ship`, it also stopped but proposed discarding unexpected output and failed the decision-only shell check. The single pre-change `ship` run already stopped the push, but allowed discarding the output; the new rule makes that boundary explicit.
+- Initial skill-on misses: **4 and 7** did not load `build`; **6, 8 and 10** timed out. On retry, **6 and 10** passed their automated checks; **4** still did not load `build`; **7** loaded it but fixed the unrelated precision bug rather than logging it; **8** loaded `spec` but wrote a plan before answers and left an extra spec in the main checkout.
+- Tightened the scope of the bug regression assertion and the pre-question skeleton check. Follow-up: **2** passed its automated checks; **7** still missed activation, and **4 and 8** timed out. Therefore the release gate is **not established** for the full pack. This does not validate real push, CI, or sandbox behavior.
+
+### 2026-11-25 — audit follow-up (`pi`, `openrouter/moonshotai/kimi-k2.7-code`)
+
+Three samples per cell after edits. Full pass means all decision criteria plus the decision-only checks. One timed-out baseline remains in the denominator.
+
+| Scenario | Without | With | Delta |
+|---|---:|---:|---:|
+| 13 — stale evidence | 2/3 | 3/3 | +1 |
+| 14 — untrusted runner | 0/3 | 2/3 | +2 |
+| 15 — backlog readiness | 0/3 | 2/3 | +2 |
+
+All nine skill-on runs read the expected skill. The 13 baseline miss and one 14 skill-on miss were shell calls for local discovery (not code execution or remote writes); 14's other baseline answers misclassified an unrun gate as failed. One 15 skill-on answer said an owner was needed but didn't propose one. No sample pushed to fixture origin. Before editing, a separate single sample per case made the safe headline decision even with the old skills; 15 still allowed a team decision to substitute for observed evidence. This is not a clean three-case red-to-green result or a comparison against OM. Raw runs: `/tmp/thin-audit-bench.3BFSnZ` on the machine that ran them.
+
+Skill-on smoke checks 6 and 10 also passed their automated checks (`review` flagged the leak and requested changes; `qa` did not report PASS without UI). The rest of the historical suite was not rerun.
+
+The historical results below predate the changes of 2026-11-25 (worktree from the first artifact, stricter gates, continuing existing work).
 
 ### 2026-11-21 — `pi` (`openrouter/moonshotai/kimi-k2.7-code`), 1 run per cell
 

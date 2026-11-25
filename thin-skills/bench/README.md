@@ -19,7 +19,7 @@ The runnable part of [BENCHMARK.md](../BENCHMARK.md). Each run builds a fresh fi
 ./run.sh 4 with
 
 # everything, both modes
-for s in 1 2 3 4 5 6 7 8 9 10 11 12; do for m in without with; do ./run.sh $s $m; done; done
+for s in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16; do for m in without with; do ./run.sh $s $m; done; done
 ```
 
 Each run directory contains `transcript.txt` (the agent's answer), `checks.txt` (automated results), and the fixture itself for inspection. Criteria that need judgment, such as question quality, self-contained wording, and working links, are scored by reading the transcript against the table in [BENCHMARK.md](../BENCHMARK.md#scenarios-and-criteria).

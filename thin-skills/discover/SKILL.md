@@ -81,7 +81,9 @@ On refresh, keep existing decisions; a changed decision gets a new line that nam
 
 ## Backlog (optional, on request)
 
-From **Now** only: epics, then stories, each with acceptance criteria in one or two lines. Show the whole tree in chat. On "yes", run `gh issue list --search` per story to skip duplicates, then `gh issue create` with a short body that links the brief. Report the created issue links. No labels unless asked.
+**Readiness comes before consent.** From **Now**, hold back any item without observed evidence of who has the problem, a checkable outcome, or a resolved decision for each blocking dependency. Sponsor approval sets scope; it does not turn an assumption or synthetic panel into evidence. For held items, name the gap and propose a research or decision task with an owner instead of implementation tickets.
+
+For ready items only: epics, then stories, each with acceptance criteria in one or two lines. Show the whole tree in chat. On "yes", run `gh issue list --search` per story to skip duplicates, then `gh issue create` with a short body that links the brief. Report the created issue links. No labels unless asked.
 
 ## Example question
 

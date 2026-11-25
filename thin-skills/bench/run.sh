@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs one benchmark scenario once, with or without thin-skills installed in the fixture.
-# usage: run.sh <scenario 1-12> <with|without> [runs-dir]
+# usage: run.sh <scenario 1-16> <with|without> [runs-dir]
 # env:   AGENT       claude | pi | codex, picks the default AGENT_CMD (default: claude)
 #        AGENT_CMD   command that takes the prompt as its last argument; overrides AGENT
 #        MODEL       optional model id passed to pi / codex
@@ -9,7 +9,7 @@ set -euo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 SKILLS_SRC=$(cd "$HERE/.." && pwd)
-S=${1:?scenario 1-12}
+S=${1:?scenario 1-16}
 MODE=${2:?with|without}
 OUT=${3:-$HERE/runs}
 AGENT=${AGENT:-claude}
@@ -116,7 +116,8 @@ SKILL_PATH = re.compile(r"\.agents/skills/([a-z-]+)/SKILL\.md")
 
 def note_skill_args(args):
     for s in SKILL_PATH.findall(json.dumps(args)):
-        if s not in skills: skills.append(s)
+        if (run / "app" / ".agents" / "skills" / s / "SKILL.md").is_file() and s not in skills:
+            skills.append(s)
 
 for line in raw.splitlines():
     try: e = json.loads(line)

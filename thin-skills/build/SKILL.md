@@ -1,6 +1,6 @@
 ---
 name: build
-description: "Implement a spec, GitHub issue, debug diagnosis, or small described change — or continue an existing worktree, branch, or PR (unfinished steps, review or QA findings, conflicts, red CI) — in an isolated git worktree — regression test first for bugs, step by step against the plan, full validation gate. Default leaves staged, uncommitted changes for human review; `--auto` (or THIN_AUTO=1) commits per step and ends with review / QA / ship as chosen at the start. Triggers: build this, implement the spec, fix issue 123, implement, zaimplementuj, napraw issue, zrób to, wdroż spec, continue PR 123, fix the review comments, popraw uwagi z review, dokończ PR."
+description: "Use for every code change: fix a bug, implement a feature, spec, issue, debug diagnosis, or small described change — or continue an existing worktree, branch, or PR (unfinished steps, review or QA findings, conflicts, red CI) — in an isolated git worktree — regression test first for bugs, step by step against the plan, full validation gate. Default leaves staged, uncommitted changes for human review; `--auto` (or THIN_AUTO=1) commits per step and ends with review / QA / ship as chosen at the start. Triggers: fix this bug, fix it, napraw ten bug, napraw błąd, popraw to, build this, implement the spec, fix issue 123, implement, zaimplementuj, napraw issue, zrób to, wdroż spec, continue PR 123, fix the review comments, popraw uwagi z review, dokończ PR."
 ---
 
 # Build
@@ -14,7 +14,7 @@ Implement one unit of work in its own worktree and stop at a predictable point.
 3. **Never hang**: every git command runs with `GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND="ssh -o BatchMode=yes" GIT_EDITOR=true`. If `commit.gpgsign` is `true` and the user hasn't confirmed their key is unlocked, make no commits.
 4. **Bugs: red test first**, observed failing for the diagnosed reason, before any fix.
 5. **Never weaken, skip, or delete a test** to get green. Never use `--no-verify`, `--no-gpg-sign`, or `--force`.
-6. **Auto mode asks before writing any code** (the ending, the extras, signing), in one message, then runs unattended.
+6. **Auto mode asks first.** With `--auto` or `THIN_AUTO=1`, your first message to the user is the step 4 question (the ending, the extras, signing). Before the answer: no worktree, no tests, no code; reading the input and the code is fine. Then it runs unattended.
 7. **Out-of-scope problems** go to the findings file and the report, never fixed and never dropped. That includes defects in files you were already editing, not only in files you happened to open.
 8. **Never write to GitHub.** Publishing belongs to `ship`.
 

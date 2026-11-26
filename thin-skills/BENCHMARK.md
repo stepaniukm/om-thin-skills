@@ -53,6 +53,42 @@ How to read it: a high baseline with a tiny delta means the skill can be shorter
 
 ## Run log
 
+### 2026-11-26 — after the activation and worktree fixes (same model, two runs in parallel)
+
+`build` describes itself as the skill for every code change and lists "fix this bug" triggers; skills create a worktree only when they write the first file; `build --auto` asks before anything else. Scenarios 3, 4, 5, 7, 11; three samples with the skills only.
+
+| Scenario | Before | After |
+|---|---:|---:|
+| 3 `debug` | 2/3 | 3/3 |
+| 4 `build` (staged) | 0/3 | 3/3 |
+| 5 `build --auto` | 1/3 | 3/3 |
+| 7 `build`, out-of-scope bug | 2/3 | 3/3 |
+| 11 `discover` | 1/3 | 3/3 |
+| **Total** | **6/15** | **15/15** |
+
+`build` loaded in 6/6 runs of 4 and 7; the unrelated precision bug was logged, not fixed, in all six. One run of 7 first failed the check, but the fix was staged: `check.sh` took the second worktree in the list, which was a temporary baseline worktree. It now picks the worktree on a `fix/` or `feat/` branch, and all 15 runs pass when rechecked. Rate limits (429) still appeared at two parallel runs but were mostly retried. No baselines were rerun.
+
+### 2026-11-26 — full suite on a new model (`pi`, `opencode-go/deepseek-v4.1-flash`)
+
+All 16 scenarios; three samples with the skills, one without, four runs in parallel. A run passes if all its automated checks pass. Not comparable one to one with the Kimi runs below.
+
+| Scenario | Without | With |
+|---|---:|---:|
+| 1, 2, 8, 9, 10, 12–16 | 3/10 | 30/30 |
+| 3 `debug` | 0/1 | 2/3 |
+| 4 `build` (staged) | 0/1 | **0/3** |
+| 5 `build --auto` | 0/1 | 1/3 (one run died on rate limits) |
+| 6 `review` | 0/1 | 2/3 (one run died on rate limits) |
+| 7 `build`, out-of-scope bug | 0/1 | 2/3 |
+| 11 `discover` | 0/1 | 1/3 |
+| **Total** | **4/16** | **38/48** |
+
+- **Rate limits:** opencode-go returned 429 often at four parallel runs; two runs gave up. Use two at a time.
+- **`build` activation is the main gap:** scenarios 4 and 7 send the same prompt, yet `build` loaded in 0/3 runs of 4 and 3/3 of 7, so 3/6 overall. Without it the agent edited the main checkout and fixed the unrelated precision bug. One run of 7 loaded `build` and still fixed it.
+- **Eager worktrees:** `debug` (1/3) and `discover` (2/3) created an empty worktree and branch before writing anything, which fails the read-only checks. The skills say a worktree is created "before the first file is written"; the model read that as "at the start".
+- `build --auto` started coding before asking how the run ends in 1 of 2 valid runs.
+- Same subset as the 2026-11-25 Kimi run (3–7, 10, 13, 14, 16): 19/27 here vs 26/27 there, mostly from `build` activation.
+
 ### 2026-11-25 — `debug` and `review` tightened (same model, scenarios 3 and 6, with skills only)
 
 Findings logging and line checks became a numbered step. Three samples per iteration; automated checks passed in all 15 runs, so these are manual counts.

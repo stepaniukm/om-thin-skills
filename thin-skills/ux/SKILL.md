@@ -22,7 +22,7 @@ Decide how a feature should work for its user, show it, or check it. Never edits
 
 ## Where files go (shape and prototype)
 
-By default all work happens in its own worktree, created before the first file is written:
+By default all work happens in its own worktree. Create it only at the moment you write the first file; asking questions, reading code, or reporting in chat never creates one:
 
 - If the user names a location (for example the current checkout), write there and create no worktree.
 - Already in a linked worktree that holds this work, or given its path → use it.

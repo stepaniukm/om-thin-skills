@@ -48,7 +48,8 @@ case $S in
   4|7)
     check "worktree created" '[ "$worktrees" -gt 1 ]'
     check "no new commits (staged mode)" '[ -z "$(echo "$new_refs" | grep -v "refs/heads/fix/\|refs/heads/feat/" )" ] && ! git -C "$APP" log --all --oneline | grep -vq -e initial -e "feat(api): list orders"'
-    wt=$(git -C "$APP" worktree list --porcelain | awk '/^worktree /{print $2}' | sed -n 2p)
+    # The work worktree is the one on a fix/ or feat/ branch; temporary baseline worktrees are detached.
+    wt=$(git -C "$APP" worktree list --porcelain | awk '/^worktree /{w=$2} /^branch refs\/heads\/(fix|feat)\//{print w; exit}')
     if [ -n "$wt" ]; then
       check "fix staged in worktree" '[ -n "$(git -C "$wt" diff --cached --name-only)" ]'
       check "free-order test exists in worktree" 'grep -rqiE "free|total.*0|zero" "$wt/test"'

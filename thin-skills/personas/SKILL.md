@@ -18,7 +18,7 @@ Find the questions worth asking real users. The output is hypotheses, never evid
 
 ## Where files go
 
-By default all work happens in its own worktree, created before the first file is written:
+By default all work happens in its own worktree. Create it only at the moment you write the first file; asking questions, reading code, or reporting in chat never creates one:
 
 - If the user names a location (for example the current checkout), write there and create no worktree.
 - Already in a linked worktree that holds this work, or given its path → use it.

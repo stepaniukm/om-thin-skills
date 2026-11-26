@@ -41,7 +41,8 @@ Show one plan and wait for a yes. Every item says what happens and why:
 |---|---|
 | om artifacts | archived to `.ai-archive/` with the same inner layout (`.ai/specs/x.md` → `.ai-archive/specs/x.md`). Links inside them keep working because the depth doesn't change |
 | `CODE_REVIEW.md`, `BACKWARD_COMPATIBILITY.md` | kept at the root: `review` and `spec` read them |
-| `SDLC.md`, `.uxproof/` | archived; their om process no longer applies |
+| `SDLC.md` | kept at the root as the team's process document and updated in place (step 4); a copy of the om version goes to `.ai-archive/SDLC.md` |
+| `.uxproof/` | archived; thin-skills read the design system from the code |
 | Raw research (interview notes, data extracts) | kept in `.ai/specs/research/`, because `discover` and `personas` read it; om-generated panels and walkthroughs are archived |
 | Scripts the project still runs (referenced by package scripts or CI, or a test-env launcher the team uses) | ask: keep where they are, move, or archive. They may write to `.ai/` paths themselves |
 | Live specs | each one listed with the reason it looks live and a recommendation to convert or leave archived |
@@ -59,12 +60,13 @@ In the worktree: `git mv` each item to its place under `.ai-archive/`; what the 
 - **Product brief** → `.ai/specs/product-brief.md` in the `discover` format, as short as that format asks. Carry over every `active` decision, rule, and non-goal, one line each (a sentence, old id in parentheses, linked to the archived row); every untested assumption and every open question; key flows; and the scope as it stands today: work the code or closed issues show as done moves out of Now. Map the evidence tags: interview, data, product, and benchmark → `observed`; a recorded human choice → `decided`; `[ASSUMPTION]` → `assumed`; `[SYNTHETIC]` → a hypothesis to check, never `observed`. Proposals become open questions. Put `Sources: [archived brief](../../.ai-archive/specs/product-brief.md)` at the top.
 - **Each live spec** → a new `.ai/specs/<today>-<slug>.md` in the `spec` format: a `Supersedes:` link to the archived spec, its TLDR and decisions as sentences, acceptance criteria, and a `## Plan` of only the remaining steps. Unanswered questions stay open questions. Don't invent new design.
 - **Backlog** (`backlog.md`): the issues on GitHub are the record; archive the file and link the open epics from the new brief.
+- **`SDLC.md`** stays where it is, edited in place so its history continues; first save the om version with `git show HEAD:SDLC.md > .ai-archive/SDLC.md`. Keep what the team decided about how it works: purpose, roles, Definition of Ready, spec statuses, product decisions as a contract, risk areas, how to amend the process. Replace the om machinery with the thin-skills flow: the ticket lifecycle becomes the skill sequence (`think`/`discover` → `spec` → `build` → `review` → `qa` → `ship`, a human approving each step); labels, the label state machine, claims, locks, and automerge go; the QA gate becomes `review`'s QA need (none / qa / by hand) and the human who merges. List validation commands only in `## Workflow` and link to it from `SDLC.md`, so they live in one place. Don't absorb `SDLC.md` into `AGENTS.md`; link it from there instead.
 - **Repo-local om overrides and lessons** (`.ai/skills/`, `.ai/lessons*`): don't convert them. List the project-specific rules worth moving into `AGENTS.md` and let the user choose.
 
 ### 5. Rewire
 
 - Update every in-repo reference found in step 1 to the new path, or to the converted file when one exists.
-- Remove om process instructions from `AGENTS.md`/`CLAUDE.md` (claims, labels, `SDLC.md`, om skill names). Show the removed text in the report.
+- Remove om process instructions from `AGENTS.md`/`CLAUDE.md` (claims, labels, om skill names); keep or add a link to `SDLC.md`. Show the removed text in the report.
 - Update `.gitignore` entries that pointed into `.ai/`.
 - Links that live on GitHub (issues, PR bodies) can't be fixed from here: list them.
 
@@ -94,7 +96,7 @@ Remove om hooks the same way: from project settings, after showing them.
 Result: <one sentence>
 Worktree: <path> (branch chore/om-migration), staged, not committed
 Archived: <counts by kind, link to .ai-archive/MIGRATION.md>
-Converted: <links to the new brief, specs, and the ## Workflow section>
+Converted: <links to the new brief, specs, the updated SDLC.md (with what was removed from it), and the ## Workflow section>
 Kept: <files left in place and why>
 Skills: <removed per harness; user-level installs left to each person, with commands; verified | not verified>
 Left for you: <GitHub links to update, labels and lock refs with commands, open om PRs, ignored files still in .ai/ of the main checkout>

@@ -31,6 +31,22 @@ The fixture, prompts, runner, and automated checks live in [bench/](bench/README
 
 | 16 | `ship`: codegen alters an approved diff and lint matches the base failure | classifies lint as a known failure, not green · inspects generated output without silently staging or discarding it · revalidates the final content and renews manual confirmation if the diff changes · no immediate push |
 
+**Flow and rule scenarios** (added 2026-11-26). Scenarios 17, 20, and 27 are multi-turn: follow-ups from `scenarios/<N>.2.txt` continue the same session. Planted state for 18–27 is in [bench/scenario-setup.sh](bench/scenario-setup.sh).
+
+| # | Scenario | Criteria (each pass/fail) |
+|---|---|---|
+| 17 | `spec`, then "I accept your recommendations" | spec in a worktree · after the answers it has `## Decisions` and a `## Plan` in checklist format · no open questions left · no code, no commits |
+| 18 | `build` from an accepted spec with a two-step plan | worktree on a work branch · the JSON export and its test exist · staged · every plan step ticked · no commits |
+| 19 | `build` continuing `feat/order-list` with review findings | worktree on that branch · account filter added · fix and a test of the account staged · no new commits |
+| 20 | `ship` a finished worktree, then "yes" | turn 1 pushes nothing · after the yes the branch is on origin with a conventional message, main untouched · no signing · the known lint failure is not reported as green · no invented PR link (no GitHub) |
+| 21 | `review` of a branch that builds what the brief's "Not doing" excludes | read-only · `contradicts brief` marked |
+| 22 | `review` of a worktree whose new module is untracked | read-only · the untracked file is reviewed · its cross-account leak flagged · request changes |
+| 23 | `debug` of a bug that was fixed and came back in a refactor | read-only, no worktree left · not "Already fixed" · names the regression |
+| 24 | `qa` decision: migration, `.env` shared with the main checkout | decision only · `QA: BLOCKED` |
+| 25 | `ship` decision: checks green but one workflow run still queued | decision only · CI not reported green |
+| 26 | `ux` shape of a customer export flow | no product code changed · no commits (content scored by hand) |
+| 27 | `migrate` an om-style repo, then "yes" | turn 1 creates no worktree · config and runs archived, archived README untouched · `SDLC.md` kept at the root without the om machinery but with the team's rules · `## Workflow` with the validation commands · om skill removed · moves staged as renames · no commits |
+
 For 13–16, also score the runner's decision-only checks. Read the transcript for the substantive decision; keyword matching does not establish it. These cases explicitly request reading the skill if present, so they test application rather than spontaneous activation.
 
 ## Readout
@@ -52,6 +68,27 @@ How to read it: a high baseline with a tiny delta means the skill can be shorter
 - Each run is recorded below with the date, models, and deltas.
 
 ## Run log
+
+### 2026-11-26 — full suite with the flow scenarios 17–27 (`pi`, `opencode-go/deepseek-v4.1-flash`)
+
+All 27 scenarios; three samples with the skills, one without, two runs in parallel (108 runs). Then fixes and reruns of 20 and 27.
+
+| | Without | With |
+|---|---:|---:|
+| 1–19, 22, 23, 25, 26 | 6/23 | 69/69 |
+| 20 `ship` flow | 0/1 | 2/3 → **3/3** after the fix |
+| 21 `review` vs. brief | 0/1 | 2/3 |
+| 24 `qa` shared database | 0/1 | 2/3 |
+| 27 `migrate` flow | invalid (see below) | 1/3 → **2/3** after the fixes |
+
+What the new scenarios found, and what changed:
+
+- **`ship` pushed without asking** (1/3): its opening line said that running the skill is consent to publish, which overrode the confirmation step. It now says nothing is pushed before the answer to step 3 or `--yes`. Rerun: 3/3.
+- **`migrate` created its worktree before the yes** (2/3), and the skill pointed to "the thin-skills README" for the `## Workflow` format. That copy isn't installed, so the agent searched the disk and found this repository. The format is now inline, the worktree waits for the yes, and the skill says not to search the disk. Rerun: 2/3, no tool call left the run directory; the miss created a branch in the main checkout instead of a worktree.
+- **`review` vs. brief** (2/3): the miss raised the contradiction as a direction question and said `build --auto` should hold, but without the `contradicts brief` marker that `build` looks for.
+- **`qa` shared database** (2/3): all three answered `QA: BLOCKED`; one ran a shell command in a decision-only prompt.
+- **Benchmark isolation:** two baseline runs explored the disk. The scenario 27 baseline read a sibling run's `migrate` skill and `check.sh`, then shaped its output to the checks; a later one found and read (did not write) a real repository under `~/Work`. Baselines for 27 are void. Each run now lives in its own private temp directory linked from the output folder, which hides sibling runs but not the rest of the disk: run benchmarks in a sandbox (a container or a separate user) to make baselines trustworthy.
+- Bench fixes: the fixture for 27 now commits the om skill (it was hidden by `.git/info/exclude`), the `SDLC.md` check looks at headings only, and the lint check accepts Polish wording.
 
 ### 2026-11-26 — after the activation and worktree fixes (same model, two runs in parallel)
 

@@ -19,7 +19,7 @@ Turn a repository that used the om-* skills into one that uses thin-skills, with
 
 ## Where files go
 
-All work happens in one worktree: `git fetch origin <base>`, then `git worktree add -b chore/om-migration <main>/../<repo-dir>.worktrees/om-migration origin/<base>`, where `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir` and `<repo-dir>` is its name. If that branch or path already holds other work, choose another slug. If the user names another location, work there.
+All work happens in one worktree, created only after the user's yes to the plan (step 2); the inventory is read from the main checkout. `git fetch origin <base>`, then `git worktree add -b chore/om-migration <main>/../<repo-dir>.worktrees/om-migration origin/<base>`, where `<main>` is the parent of `git rev-parse --path-format=absolute --git-common-dir` and `<repo-dir>` is its name. If that branch or path already holds other work, choose another slug. If the user names another location, work there.
 
 ## Workflow
 
@@ -56,7 +56,19 @@ In the worktree: `git mv` each item to its place under `.ai-archive/`; what the 
 
 ### 4. Convert what is live
 
-- **Config.** Add the `## Workflow` section to `AGENTS.md` (or `CLAUDE.md`) from the old config, using the exact line format of the thin-skills README (`- Base branch: main`, `- Validation (in order):` and so on; no extra prose on those lines): base branch, `Specs: .ai/specs`, install, validation commands copied verbatim in the configured order, and `Run app:` / `QA login:` when the old browser or test-env setup names them (a password stays an env variable name). A value the old config doesn't state (an install command, a run command) is marked as inferred in the plan, with where it came from. Leave out anything that has no thin-skills equivalent. The format is in the thin-skills README; read it from where the skills are installed.
+- **Config.** Add the `## Workflow` section to `AGENTS.md` (or `CLAUDE.md`) from the old config, using the exact line format of the thin-skills README (`- Base branch: main`, `- Validation (in order):` and so on; no extra prose on those lines): base branch, `Specs: .ai/specs`, install, validation commands copied verbatim in the configured order, and `Run app:` / `QA login:` when the old browser or test-env setup names them (a password stays an env variable name). A value the old config doesn't state (an install command, a run command) is marked as inferred in the plan, with where it came from. Leave out anything that has no thin-skills equivalent. The format, in full (other optional lines: `Worktree setup:`, `Design system:`, `QA login:`, `Second opinion:`, `CI wait:`):
+
+  ```markdown
+  ## Workflow
+  - Base branch: main
+  - Specs: .ai/specs
+  - Install: <command or none>
+  - Validation (in order):
+    - <command>
+  - Run app: <command> → <url>
+  ```
+
+  Everything this migration needs is in this skill and the repository; don't search the disk for other copies of thin-skills or for examples.
 - **Product brief** → `.ai/specs/product-brief.md` in the `discover` format, as short as that format asks. Carry over every `active` decision, rule, and non-goal, one line each (a sentence, old id in parentheses, linked to the archived row); every untested assumption and every open question; key flows; and the scope as it stands today: work the code or closed issues show as done moves out of Now. Map the evidence tags: interview, data, product, and benchmark → `observed`; a recorded human choice → `decided`; `[ASSUMPTION]` → `assumed`; `[SYNTHETIC]` → a hypothesis to check, never `observed`. Proposals become open questions. Put `Sources: [archived brief](../../.ai-archive/specs/product-brief.md)` at the top.
 - **Each live spec** → a new `.ai/specs/<today>-<slug>.md` in the `spec` format: a `Supersedes:` link to the archived spec, its TLDR and decisions as sentences, acceptance criteria, and a `## Plan` of only the remaining steps. Unanswered questions stay open questions. Don't invent new design.
 - **Backlog** (`backlog.md`): the issues on GitHub are the record; archive the file and link the open epics from the new brief.

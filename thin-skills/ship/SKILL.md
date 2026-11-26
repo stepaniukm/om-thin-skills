@@ -5,7 +5,7 @@ description: "Publish finished work from a build worktree — validation gate, c
 
 # Ship
 
-Turn a finished worktree into one PR. Running this skill is the user's consent to publish.
+Turn a finished worktree into one PR. Asking for this skill starts the preparation; nothing is pushed until the user answers the confirmation in step 3, unless `--yes` was passed.
 
 ## Arguments
 
